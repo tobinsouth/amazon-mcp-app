@@ -10,6 +10,18 @@ import { CAROUSEL_HTML } from "./generated/carousel-html.js";
 
 export const CAROUSEL_URI = "ui://widgets/amazon-carousel.html";
 
+/**
+ * Amazon image URLs encode sizing hints (e.g. `._AC_UY218_.jpg`).
+ * Normalize to a 400px square-bounded variant so every thumbnail lands
+ * with a predictable aspect ratio in the widget's fixed image well.
+ */
+function normalizeAmazonImage(url: string, size = 400): string {
+  return url.replace(
+    /\._[A-Z0-9_,]+_\.(jpg|png|webp)$/i,
+    `._AC_SL${size}_.$1`,
+  );
+}
+
 async function toDataUrl(url: string): Promise<string | undefined> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
@@ -119,13 +131,14 @@ export function buildServer() {
       _meta: { ui: { resourceUri: CAROUSEL_URI } },
     },
     async ({ heading, products }) => {
-      // Inline thumbnails as data: URLs — the iframe CSP blocks remote img-src.
+      // Normalize to square-bounded Amazon image variant, then inline as
+      // data: URLs (iframe CSP blocks remote img-src).
       const inlined = await Promise.all(
-        products.map(async (p) =>
-          p.thumbnail
-            ? { ...p, thumbnail: (await toDataUrl(p.thumbnail)) ?? p.thumbnail }
-            : p,
-        ),
+        products.map(async (p) => {
+          if (!p.thumbnail) return p;
+          const square = normalizeAmazonImage(p.thumbnail);
+          return { ...p, thumbnail: (await toDataUrl(square)) ?? square };
+        }),
       );
       const payload = {
         heading,
