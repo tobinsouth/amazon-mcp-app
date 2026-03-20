@@ -144,7 +144,10 @@ export function buildServer() {
         heading,
         products: inlined as AmazonProduct[],
         cartBaseUrl: "https://www.amazon.com/gp/aws/cart/add.html",
-        associateTag: process.env.AMAZON_ASSOCIATE_TAG ?? "",
+        // AssociateTag is mandatory — the endpoint 503s without it.
+        // Any string works; set AMAZON_ASSOCIATE_TAG to a real affiliate
+        // tag if you have one.
+        associateTag: process.env.AMAZON_ASSOCIATE_TAG || "mcpdemo-20",
       };
       const summary =
         `Rendered carousel "${heading}" with ${products.length} product(s): ` +
