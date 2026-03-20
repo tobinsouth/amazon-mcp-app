@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "buildCommand": "npm run build:widget",
+  "outputDirectory": "public",
   "rewrites": [
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/health", "destination": "/api/mcp" }
