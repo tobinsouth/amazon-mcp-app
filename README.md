@@ -1,5 +1,26 @@
 # Amazon MCP App
 
+> [!WARNING]
+> **Extremely experimental.** This is a demo/spike to exercise the MCP Apps
+> (interactive widget) surface. APIs, tool shapes, and the widget itself will
+> change without notice. Not affiliated with Amazon.
+
+**Live endpoint:** `https://amazon-mcp-app.vercel.app/mcp` (streamable-HTTP)
+
+Claude Desktop config:
+```json
+{
+  "mcpServers": {
+    "amazon-shopping": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://amazon-mcp-app.vercel.app/mcp", "--transport", "http-only"]
+    }
+  }
+}
+```
+
+---
+
 Demo MCP app that lets Claude **deep-research Amazon products** across many
 keyword searches, then present a curated set in an **interactive,
 Amazon-flavored carousel widget** the user can add-to-cart from — checkout
