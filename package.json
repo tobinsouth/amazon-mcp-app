@@ -1,0 +1,33 @@
+{
+  "name": "amazon-mcp-app",
+  "version": "0.1.0",
+  "description": "MCP app for deep-research Amazon product discovery with an interactive add-to-cart carousel widget.",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build:widget": "node scripts/build-widget.mjs",
+    "predev": "npm run build:widget",
+    "dev": "tsx src/server.ts",
+    "prebuild": "npm run build:widget",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "inspect": "npx @modelcontextprotocol/inspector"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@modelcontextprotocol/ext-apps": "^1.2.2",
+    "express": "^4.21.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "@vercel/node": "^5.1.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

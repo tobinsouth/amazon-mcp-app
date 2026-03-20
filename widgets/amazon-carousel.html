@@ -1,0 +1,547 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Amazon picks</title>
+<style>
+  :root {
+    --ink: #0f1111;
+    --ink-2: #565959;
+    --link: #007185;
+    --link-hover: #c7511f;
+    --star: #de7921;
+    --gold: #ffd814;
+    --gold-hover: #f7ca00;
+    --gold-active: #f0b800;
+    --hairline: #d5d9d9;
+    --shell-bg: #fff;
+    --card-bg: #fff;
+    --thumb-bg: #f7f8f8;
+    --note-bg: #f7fafa;
+    --cart-hover: #f7fafa;
+    --card-w: 240px;
+    --gutter: 16px;
+    --radius: 10px;
+    color-scheme: light;
+  }
+  :root.dark {
+    --ink: #e6e6e6;
+    --ink-2: #a1a6a6;
+    --link: #4dabf7;
+    --link-hover: #ff9900;
+    --hairline: #3a4045;
+    --shell-bg: #181c1f;
+    --card-bg: #1f2428;
+    --thumb-bg: #2a3136;
+    --note-bg: #262c31;
+    --cart-hover: #262c31;
+    color-scheme: dark;
+  }
+  :root.dark .logo-light { display: none; }
+  :root:not(.dark) .logo-dark { display: none; }
+  :root.dark .thumb,
+  :root.dark .solo .media img { mix-blend-mode: normal; }
+  * { box-sizing: border-box; }
+  html, body { height: auto; }
+  body {
+    margin: 0;
+    font: 14px/1.4 "Amazon Ember", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+    background: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    background: var(--shell-bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* ── header ── */
+  .bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 12px var(--gutter) 4px;
+  }
+  .logo { height: 24px; width: auto; opacity: .9; justify-self: start; }
+  .heading {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cart {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    cursor: pointer;
+    transition: background .12s, border-color .12s, opacity .12s;
+  }
+  .cart { background: transparent; }
+  .cart:hover { background: var(--cart-hover); }
+  .cart:disabled { opacity: .35; cursor: default; }
+  .cart .count {
+    min-width: 18px;
+    padding: 0 5px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    color: #fff;
+    background: #f08804;
+    border-radius: 9px;
+    transition: transform .15s;
+  }
+  .cart.has .count { transform: scale(1); }
+  .cart:not(.has) .count { transform: scale(0); width: 0; min-width: 0; padding: 0; }
+
+  /* ── rail ── */
+  .rail-wrap { position: relative; }
+  .rail {
+    display: flex;
+    gap: 10px;
+    padding: 8px var(--gutter) 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar { display: none; }
+
+  /* ── card (amazon.com search result tile) ── */
+  .card {
+    flex: 0 0 var(--card-w);
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .thumb-box {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 200px;
+    padding: 12px;
+    background: var(--thumb-bg);
+  }
+  .thumb {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px 12px;
+    flex: 1;
+  }
+
+  .title {
+    margin: 0 0 4px;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
+  }
+  .title:hover { color: var(--link-hover); }
+
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .rating .num { color: var(--ink); }
+  .stars {
+    position: relative;
+    display: inline-block;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--hairline);
+    letter-spacing: 1.5px;
+  }
+  .stars::before { content: "★★★★★"; }
+  .stars .fill {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    color: var(--star);
+  }
+  .stars .fill::before { content: "★★★★★"; }
+  .rating .count { color: var(--link); font-size: 13px; }
+  .rating .count::before { content: "("; }
+  .rating .count::after  { content: ")"; }
+
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 2px 0 6px;
+  }
+  .price .sym { font-size: 13px; position: relative; top: -0.55em; }
+  .price .whole { font-size: 24px; font-weight: 500; letter-spacing: -0.01em; }
+  .price .frac { font-size: 13px; position: relative; top: -0.55em; }
+  .price .raw { font-size: 18px; font-weight: 500; }
+
+  .prime {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #00a8e1;
+    margin-bottom: 6px;
+  }
+  .prime svg { width: 14px; height: 14px; }
+
+  .note {
+    margin: 0 0 10px;
+    padding: 6px 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--ink-2);
+    background: var(--note-bg);
+    border-left: 3px solid #f08804;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .add {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f1111;
+    background: var(--gold);
+    border: 0;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .08s;
+  }
+  .add:hover { background: var(--gold-hover); }
+  .add:active { background: var(--gold-active); }
+  .add.in {
+    background: var(--note-bg);
+    color: var(--ink-2);
+  }
+  .add.in:hover { background: var(--cart-hover); }
+
+  .empty { padding: 32px; text-align: center; color: var(--ink-2); }
+
+  /* ── solo (single-item PDP layout) ── */
+  .solo {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 1.1fr;
+    gap: 24px;
+    padding: 12px var(--gutter) 16px;
+  }
+  .solo .media {
+    display: grid;
+    place-items: center;
+    min-height: 280px;
+    padding: 16px;
+    background: var(--thumb-bg);
+    border-radius: 6px;
+  }
+  .solo .media img {
+    max-width: 100%;
+    max-height: 340px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+  .solo .info { display: flex; flex-direction: column; }
+  .solo h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+  .solo h1 a { color: var(--ink); text-decoration: none; }
+  .solo h1 a:hover { color: var(--link-hover); }
+  .solo .rating { margin-bottom: 10px; }
+  .solo hr {
+    border: 0; border-top: 1px solid var(--hairline);
+    margin: 6px 0 12px;
+  }
+  .solo .price .whole { font-size: 28px; }
+  .solo .price-row { margin-bottom: 10px; }
+  .solo .prime { margin-bottom: 12px; }
+  .solo .note {
+    margin: 0 0 16px;
+    font-size: 13px;
+  }
+  .solo .actions { display: flex; gap: 10px; }
+  .solo .add { padding: 9px 22px; font-size: 14px; }
+  .solo .buy {
+    padding: 9px 22px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f1111;
+    background: #ffa41c;
+    border: 0;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  .solo .buy:hover { background: #fa8900; }
+
+  @media (max-width: 560px) {
+    .solo { grid-template-columns: 1fr; gap: 14px; }
+    .solo .media { min-height: 200px; }
+    .solo .media img { max-height: 220px; }
+  }
+
+  .shell.is-solo .bar { grid-template-columns: 1fr auto; }
+  .shell.is-solo .heading { display: none; }
+</style>
+
+<div class="shell" id="shell">
+  <div class="bar">
+    <span>
+      <img class="logo logo-light" src="__AMAZON_LOGO_LIGHT__" alt="Amazon" />
+      <img class="logo logo-dark" src="__AMAZON_LOGO_DARK__" alt="Amazon" />
+    </span>
+    <h2 class="heading" id="heading">Recommended for you</h2>
+    <button id="go" class="cart" disabled>
+      <span>Cart</span>
+      <span class="count" id="count">0</span>
+    </button>
+  </div>
+
+  <div class="rail-wrap" id="wrap">
+    <div class="rail" id="rail"><div class="empty">Loading products…</div></div>
+  </div>
+</div>
+
+<script type="module">
+/* ext-apps bundle inlined at server startup → globalThis.ExtApps */
+/*__EXT_APPS_BUNDLE__*/
+const { App } = globalThis.ExtApps;
+(async () => {
+  const app = new App({ name: "AmazonCarousel", version: "0.1.0" }, {});
+
+  const shell = document.getElementById("shell");
+  const wrap = document.getElementById("wrap");
+  const rail = document.getElementById("rail");
+  const heading = document.getElementById("heading");
+  const goBtn = document.getElementById("go");
+  const countEl = document.getElementById("count");
+
+  /** @type {Map<string, {qty:number, title:string}>} */
+  const cart = new Map();
+  let cartBaseUrl = "https://www.amazon.com/gp/aws/cart/add.html";
+  let associateTag = "";
+
+  function priceHtml(p) {
+    if (!p) return "";
+    const m = p.match(/^\$?\s*([\d,]+)(?:\.(\d{1,2}))?$/);
+    if (!m) return `<span class="price"><span class="raw">${p}</span></span>`;
+    const whole = m[1];
+    const frac = (m[2] ?? "").padEnd(2, "0") || "00";
+    return `<span class="price"><span class="sym">$</span><span class="whole">${whole}</span><span class="frac">${frac}</span></span>`;
+  }
+
+  function starsHtml(r) {
+    const pct = Math.max(0, Math.min(100, (r / 5) * 100));
+    return `<span class="stars" title="${r.toFixed(1)} out of 5"><span class="fill" style="width:${pct}%"></span></span>`;
+  }
+
+  function fmtCount(n) {
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K";
+    return String(n);
+  }
+
+  function cartUrl() {
+    const parts = [];
+    if (associateTag) parts.push(`AssociateTag=${encodeURIComponent(associateTag)}`);
+    let i = 1;
+    for (const [asin, { qty }] of cart) {
+      parts.push(`ASIN.${i}=${encodeURIComponent(asin)}`);
+      parts.push(`Quantity.${i}=${qty}`);
+      i++;
+    }
+    return `${cartBaseUrl}?${parts.join("&")}`;
+  }
+
+  function syncCartUI() {
+    const n = cart.size;
+    countEl.textContent = String(n);
+    goBtn.disabled = n === 0;
+    goBtn.classList.toggle("has", n > 0);
+  }
+
+  const primeSvg = `<svg viewBox="0 0 16 16" fill="#f08804"><path d="M6.5 12.5 2 8l1.4-1.4L6.5 9.7 12.6 3.6 14 5z"/></svg>`;
+
+  function renderSolo(p) {
+    shell.classList.add("is-solo");
+    const link = `https://www.amazon.com/dp/${encodeURIComponent(p.asin)}`;
+    wrap.innerHTML = `
+      <div class="solo">
+        <div class="media">
+          ${p.thumbnail ? `<img referrerpolicy="no-referrer" src="${p.thumbnail}" alt="">` : ""}
+        </div>
+        <div class="info">
+          <h1><a href="${link}">${p.title}</a></h1>
+          ${p.rating != null ? `
+            <div class="rating">
+              <span class="num">${p.rating.toFixed(1)}</span>
+              ${starsHtml(p.rating)}
+              ${p.reviews != null ? `<span class="count">${fmtCount(p.reviews)}</span>` : ""}
+            </div>` : ""}
+          <hr>
+          <div class="price-row">${priceHtml(p.price)}</div>
+          ${p.prime ? `<span class="prime">${primeSvg}prime</span>` : ""}
+          ${p.note ? `<div class="note">${p.note}</div>` : ""}
+          <div class="actions">
+            <button class="add">Add to cart</button>
+            <button class="buy">Buy now</button>
+          </div>
+        </div>
+      </div>
+    `;
+    wrap.querySelector("h1 a").addEventListener("click", (e) => {
+      e.preventDefault(); app.openLink({ url: link });
+    });
+    const addBtn = wrap.querySelector(".add");
+    const buyBtn = wrap.querySelector(".buy");
+    const paint = () => {
+      const inCart = cart.has(p.asin);
+      addBtn.textContent = inCart ? "Remove" : "Add to cart";
+      addBtn.classList.toggle("in", inCart);
+    };
+    addBtn.addEventListener("click", () => {
+      if (cart.has(p.asin)) cart.delete(p.asin);
+      else cart.set(p.asin, { qty: 1, title: p.title });
+      paint(); syncCartUI();
+      app.updateModelContext({
+        content: [{ type: "text", text: "Cart state: " + JSON.stringify(
+          [...cart].map(([asin, v]) => ({ asin, qty: v.qty, title: v.title }))
+        )}],
+      });
+    });
+    buyBtn.addEventListener("click", async () => {
+      cart.set(p.asin, { qty: 1, title: p.title });
+      paint(); syncCartUI();
+      const url = cartUrl();
+      await app.openLink({ url });
+      app.sendMessage({ role: "user", content: [{ type: "text",
+        text: `Opened Amazon cart with ${p.title} (${p.asin})\n${url}` }] });
+    });
+    paint();
+  }
+
+  function render({ heading: h, products, cartBaseUrl: base, associateTag: tag }) {
+    if (base) cartBaseUrl = base;
+    if (tag) associateTag = tag;
+    if (products.length === 1) return renderSolo(products[0]);
+    shell.classList.remove("is-solo");
+    heading.textContent = h || "Recommended for you";
+    rail.innerHTML = "";
+    for (const p of products) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const link = `https://www.amazon.com/dp/${encodeURIComponent(p.asin)}`;
+      card.innerHTML = `
+        <div class="thumb-box">
+          ${p.thumbnail ? `<img class="thumb" referrerpolicy="no-referrer" loading="lazy" src="${p.thumbnail}" alt="">` : ""}
+        </div>
+        <div class="body">
+          <a class="title" href="${link}">${p.title}</a>
+          ${p.rating != null ? `
+            <div class="rating">
+              <span class="num">${p.rating.toFixed(1)}</span>
+              ${starsHtml(p.rating)}
+              ${p.reviews != null ? `<span class="count">${fmtCount(p.reviews)}</span>` : ""}
+            </div>` : ""}
+          <div class="price-row">${priceHtml(p.price)}</div>
+          ${p.prime ? `<span class="prime">${primeSvg}prime</span>` : ""}
+          ${p.note ? `<div class="note">${p.note}</div>` : ""}
+          <button class="add">Add to cart</button>
+        </div>
+      `;
+      card.querySelector(".title").addEventListener("click", (e) => {
+        e.preventDefault();
+        app.openLink({ url: link });
+      });
+      const btn = card.querySelector(".add");
+      const paint = () => {
+        const inCart = cart.has(p.asin);
+        btn.textContent = inCart ? "Remove" : "Add to cart";
+        btn.classList.toggle("in", inCart);
+      };
+      btn.addEventListener("click", () => {
+        if (cart.has(p.asin)) cart.delete(p.asin);
+        else cart.set(p.asin, { qty: 1, title: p.title });
+        paint();
+        syncCartUI();
+        app.updateModelContext({
+          content: [{
+            type: "text",
+            text: "Cart state: " + JSON.stringify(
+              [...cart].map(([asin, v]) => ({ asin, qty: v.qty, title: v.title }))
+            ),
+          }],
+        });
+      });
+      paint();
+      rail.append(card);
+    }
+    syncCartUI();
+    rail.scrollLeft = 0;
+  }
+
+  app.ontoolresult = ({ content }) => {
+    const text = content[0].text;
+    const split = text.indexOf("\n\n");
+    const json = split >= 0 ? text.slice(split + 2) : text;
+    try { render(JSON.parse(json)); }
+    catch { rail.innerHTML = `<div class="empty">Could not load products.</div>`; }
+  };
+
+  const applyTheme = (theme) =>
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  app.onhostcontextchanged = (ctx) => applyTheme(ctx.theme);
+
+  await app.connect();
+  applyTheme(app.getHostContext()?.theme);
+
+  goBtn.addEventListener("click", async () => {
+    if (!cart.size) return;
+    const url = cartUrl();
+    await app.openLink({ url });
+    app.sendMessage({
+      role: "user",
+      content: [{
+        type: "text",
+        text: `Opened Amazon cart with ${cart.size} item(s): ` +
+              [...cart].map(([a, v]) => `${v.title} (${a})`).join(", ") +
+              `\n${url}`,
+      }],
+    });
+  });
+
+})();
+</script>
